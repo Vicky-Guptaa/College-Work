@@ -9,6 +9,7 @@ struct Process
     string P_Name;
     int AT;
     int BT;
+    int PT;
     int WT;
     int CT;
     int RT;
@@ -22,6 +23,10 @@ bool mycomp(Process P1, Process P2)
     {
         return P1.AT < P2.AT;
     }
+    else if (P1.PT != P2.PT)
+    {
+        return P1.PT < P2.PT;
+    }
     else
     {
         int num1 = stoi(P1.P_Name.substr(1));
@@ -30,9 +35,24 @@ bool mycomp(Process P1, Process P2)
     }
 }
 
+struct myCompPT
+{
+    bool operator()(Process &p1, Process const &p2)
+    {
+        if (p1.PT != p2.PT)
+            return p1.PT > p2.PT;
+        else
+        {
+            int num1 = stoi(p1.P_Name.substr(1));
+            int num2 = stoi(p2.P_Name.substr(1));
+            return num1 > num2;
+        }
+    }
+};
+
 void Print_Bars()
 {
-    for (int i = 0; i < 120; i++)
+    for (int i = 0; i < 130; i++)
         cout << "_";
     cout << "\n";
 }
@@ -107,17 +127,21 @@ void GanttChart(vector<pair<string, pair<int, int>>> &All_Interval)
 void Chart(Process P_Array[], int T_Process)
 {
     cout << "Various Time's Related To Process Scheduling\n\n";
-    cout << "+---------------------------------------------------------------------------------------------------------------+\n";
-    cout << "|\tProcess\t|\tAT\t|\tBT\t|\tCT\t|\tWT\t|\tTAT\t|\tRT      |\n";
-    cout << "+---------------------------------------------------------------------------------------------------------------+\n";
+    cout << "+-------------------------------------------------------------------------------------------------------------------------------+\n";
+    cout << "|\tProcess\t|\tAT\t|\tBT\t|\tPT\t|\tCT\t|\tWT\t|\tTAT\t|\tRT      |\n";
+    cout << "+-------------------------------------------------------------------------------------------------------------------------------+\n";
     for (int i = 0; i < T_Process; i++)
     {
-        cout << "|\t" << P_Array[i].P_Name << "\t|\t" << P_Array[i].AT
-             << "\t|\t" << P_Array[i].BT << "\t|\t" << P_Array[i].CT
-             << "\t|\t" << P_Array[i].WT << "\t|\t" << P_Array[i].TAT
+        cout << "|\t" << P_Array[i].P_Name
+             << "\t|\t" << P_Array[i].AT
+             << "\t|\t" << P_Array[i].BT
+             << "\t|\t" << P_Array[i].PT
+             << "\t|\t" << P_Array[i].CT
+             << "\t|\t" << P_Array[i].WT
+             << "\t|\t" << P_Array[i].TAT
              << "\t|\t" << P_Array[i].RT << "\t|\n";
     }
-    cout << "+---------------------------------------------------------------------------------------------------------------+\n";
+    cout << "+-------------------------------------------------------------------------------------------------------------------------------+\n";
 }
 
 void Timing(vector<pair<string, pair<int, int>>> &All_Interval, Process P_Array[], int T_Process)
@@ -173,21 +197,21 @@ vector<pair<string, pair<int, int>>> Time_Intervals(vector<string> &timeArray)
     return processTimeInterval;
 }
 
-void AddTimeToArray(Process process, vector<string> &timeArray, int timer, int TQ)
+void AddTimeToArray(Process process, vector<string> &timeArray, int timer, int BT)
 {
-    for (int i = timer; i < timer + TQ; i++)
+    for (int i = timer; i < timer + BT; i++)
     {
         timeArray.push_back(process.P_Name);
     }
 }
 
-void RoundRobin_Preemptive(Process P_Array[], int T_Process, int TQ)
+void Priority_Scheduling(Process P_Array[], int T_Process)
 {
     sort(P_Array, P_Array + T_Process, mycomp);
-    queue<Process> que;
+    priority_queue<Process, vector<Process>, myCompPT> pque;
     int processIterator = 0;
     vector<string> timeArray;
-    que.push(P_Array[0]);
+    pque.push(P_Array[0]);
     int timer = P_Array[processIterator].AT;
     if (timer != 0)
     {
@@ -196,38 +220,23 @@ void RoundRobin_Preemptive(Process P_Array[], int T_Process, int TQ)
         AddTimeToArray(pnull, timeArray, 0, timer);
     }
     processIterator++;
-    while (!que.empty() || processIterator < T_Process)
+    while (!pque.empty() || processIterator < T_Process)
     {
-        if (!que.empty())
+        if (!pque.empty())
         {
-            Process processCpuAllocated = que.front();
-            que.pop();
-            while (processIterator < T_Process && timer + min(TQ, processCpuAllocated.BT) >= P_Array[processIterator].AT)
-            {
-                que.push(P_Array[processIterator++]);
-            }
-            if (processCpuAllocated.BT > TQ)
-            {
-                processCpuAllocated.BT -= TQ;
-                AddTimeToArray(processCpuAllocated, timeArray, timer, TQ);
-                que.push(processCpuAllocated);
-                timer += TQ;
-            }
-            else
-            {
-                int remTime = processCpuAllocated.BT;
-                AddTimeToArray(processCpuAllocated, timeArray, timer, remTime);
-                timer += remTime;
-            }
+            Process processCpuAllocated = pque.top();
+            pque.pop();
+            AddTimeToArray(processCpuAllocated, timeArray, timer, processCpuAllocated.BT);
+            timer += processCpuAllocated.BT;
         }
         else
         {
             timeArray.push_back("--");
             timer++;
-            while (processIterator < T_Process && timer >= P_Array[processIterator].AT)
-            {
-                que.push(P_Array[processIterator++]);
-            }
+        }
+        while (processIterator < T_Process && timer >= P_Array[processIterator].AT)
+        {
+            pque.push(P_Array[processIterator++]);
         }
     }
     vector<pair<string, pair<int, int>>> Intervals = Time_Intervals(timeArray);
@@ -239,28 +248,26 @@ int main()
     system("cls");
     Print_Bars();
     cout << "20BCS070_Vicky_Gupta\n";
-    cout << "Round Robin Process Scheduling Alogorithm\n";
+    cout << "Priority Scheduling Process Scheduling Alogorithm\n";
     Print_Bars();
     int T_Process;
     cout << "Enter The No Of Processes : ";
     cin >> T_Process;
-    int TQ;
-    cout << "Enter The Time Quantum : ";
-    cin >> TQ;
     fflush(stdin);
     Process P_Array[T_Process];
     Print_Bars();
     cout << "Enter The Process Details...\n";
-    cout << "| Process Name | Arival Time | Burst Time | \n";
+    cout << "| Process Name | Arival Time | Burst Time | Priority |\n";
 
     for (int i = 0; i < T_Process; i++)
     {
         cin >> P_Array[i].P_Name;
         cin >> P_Array[i].AT;
         cin >> P_Array[i].BT;
+        cin >> P_Array[i].PT;
     }
 
-    RoundRobin_Preemptive(P_Array, T_Process, TQ);
+    Priority_Scheduling(P_Array, T_Process);
     Print_Bars();
     cout << "Exited..\n";
     Print_Bars();
@@ -269,26 +276,12 @@ int main()
 
 /*
 
-Process Queue	Burst time	Arrival time
+Process Queue	Arrival time	Burst time Priority
 5
-2
-P1	0	5
-P2	1	3
-P3	2	1
-P4	3	2
-P5	4	3
-
-3
-2
-P1 0 4
-P2 0 3
-p3 0 5
-
-4
-2
-P1 1 4
-P2 2 1
-P3 3 8
-P4 4 1
+P1	0	4	2
+P2	1	3	3
+P3	2	1	4
+P4	3	5	5
+P5	4	2	5
 
 */
