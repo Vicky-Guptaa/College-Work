@@ -278,9 +278,9 @@ int main()
 
 Process Queue	Arrival time	Burst time Priority
 5
-P1	0	4	2
+P1	0	4	4
 P2	1	3	3
-P3	2	1	4
+P3	2	1	2
 P4	3	5	5
 P5	4	2	5
 

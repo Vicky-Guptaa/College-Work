@@ -1,100 +1,86 @@
 #include <iostream>
 using namespace std;
-struct process
+
+void findWaitingTime(char process[], int n, int bt[], int wt[], int quantum)
 {
-    int bru_time;
-    char p[4];
-    int arr_time;
-    int response_time;
-    int completion_time;
-    int wait_time;
-    int tat_time;
-};
-int temp;
-int sq = 0;
-int running_queue[100] = {0};
-int tot_wait_time;
-int tot_response_time;
-int tot_completion_time;
-int tot_tat_time;
-float avg_wait_time;
-float avg_tat_time;
-float avg_response_time;
-float avg_completion_time;
+    int rem_bt[n];
+    for (int i = 0; i < n; i++)
+    {
+        rem_bt[i] = bt[i];
+    }
+    int t = 0; // Current time
+    while (1)
+    {
+        bool done = true;
+        for (int i = 0; i < n; i++)
+        {
+            if (rem_bt[i] > 0)
+            {
+                done = false;
+                if (rem_bt[i] > quantum)
+                {
+                    t += quantum;
+                    rem_bt[i] -= quantum;
+                }
+                else
+                {
+                    t = t + rem_bt[i];
+                    wt[i] = t - bt[i];
+                    rem_bt[i] = 0;
+                }
+            }
+        }
+        if (done == true)
+            break;
+    }
+}
+
+void findTurnAroundTime(char process[], int n, int bt[], int wt[], int tat[])
+{
+    for (int i = 0; i < n; i++)
+    {
+        tat[i] = wt[i] + bt[i];
+    }
+}
+
+void findAverageTime(char process[], int n, int bt[], int at[], int quantum)
+{
+    int wt[n], tat[n], total_wt = 0, total_tat = 0;
+    findWaitingTime(process, n, bt, wt, quantum);
+    findTurnAroundTime(process, n, bt, wt, tat);
+    printf("Process \t Arival Time \t Burst Time \t Waiting Time \t TurnAroundTime\n");
+    for (int i = 0; i < n; i++)
+    {
+        total_wt = total_wt + wt[i];
+        total_tat = total_tat + tat[i];
+        cout << " " << i + 1 << "\t\t" << at[i] << "\t\t" << bt[i] << "\t\t" << wt[i] << "\t\t" << tat[i] << endl;
+    }
+    cout << "Average Waiting Time = " << (float)total_wt / (float)n << endl;
+    cout << "Average Turn Around Time = " << (float)total_wt / (float)n;
+}
 
 int main()
 {
-    struct process p[100];
-    int brust_remain[100];
-    int time;
-    int n;
-    cout << "Enter your total no. process" << endl;
+    char process[10];
+    int n, bt[100], at[100];
+    cout << "Enter no of process: ";
     cin >> n;
-    cout << "Enter your Quantum time" << endl;
-    cin >> time;
+    cout << "Enter processes" << endl;
     for (int i = 0; i < n; i++)
     {
-        cout << "Enter your process id" << endl;
-        cin >> p[i].p;
-        cout << "Enter the arrival time" << endl;
-        cin >> p[i].arr_time;
-        cout << "Enter your brust time" << endl;
-        cin >> p[i].bru_time;
-        brust_remain[i] = p[i].bru_time;
+        cin >> process;
     }
-    int complete = 0;
-    int is_complete = 0;
-    int idx = -1;
-    while (1)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            temp = time;
-            if (brust_remain[i] == 0)
-            {
-                complete++;
-                continue;
-            }
-            if (brust_remain[i] > time)
-            {
-                brust_remain[i] -= time;
-            }
-            else
-            {
-                if (brust_remain[i] >= 0)
-                {
-                    temp = brust_remain[i];
-                    brust_remain[i] = 0;
-                }
-            }
-            sq = sq + temp;
-            p[i].tat_time = sq;
-            p[i].wait_time = p[i].tat_time - p[i].bru_time;
-        }
-        if (n == complete)
-        {
-            break;
-        }
-    }
-
-    cout << "P"
-         << "|"
-         << "AT"
-         << "|"
-         << "TAT"
-         << "|"
-         << "WT" << endl;
+    cout << "Enter burst time" << endl;
     for (int i = 0; i < n; i++)
     {
-        p[i].wait_time = p[i].tat_time - p[i].bru_time;
-        cout << p[i].p << endl;
-        cout << p[i].arr_time << endl;
-        cout << p[i].arr_time << endl;
-
-        cout << p[i].wait_time << endl;
-        cout << "TOTAL->" << p[i].tat_time << endl;
-        tot_wait_time += p[i].wait_time;
-        tot_tat_time += p[i].tat_time;
+        cin >> bt[i];
     }
-    return 0;
+    cout << "Enter arrival time" << endl;
+    for (int i = 0; i < n; i++)
+    {
+        // printf("enter the AT of %dth process\n", i + 1);
+        cin >> at[i];
+    }
+    int quantum = 2;
+    findAverageTime(process, n, bt, at, quantum);
 }
