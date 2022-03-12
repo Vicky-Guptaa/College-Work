@@ -194,7 +194,7 @@ void HRRN(Process P_Array[], int T_Process)
     vector<Process> New_P_Array(P_Array, P_Array + T_Process);
     sort(New_P_Array.begin(), New_P_Array.end(), mycomp);
     vector<string> timeArray;
-    timer = P_Array[0].AT;
+    timer = New_P_Array[0].AT;
     if (timer != 0)
     {
         Process pnull;
@@ -233,7 +233,7 @@ int main()
     Process P_Array[T_Process];
     Print_Bars();
     cout << "Enter The Process Details...\n";
-    cout << "| Process Name | Arival Time | Burst Time | Priority |\n";
+    cout << "| Process Name | Arival Time | Burst Time |\n";
 
     for (int i = 0; i < T_Process; i++)
     {
@@ -265,5 +265,12 @@ P2	3	7
 P3	7	4
 P4	8	2
 P5	5	8
+
+5
+P1        0        3
+P2        2        6
+P3        4        4
+P4        8        2
+P5        6        5
 
 */

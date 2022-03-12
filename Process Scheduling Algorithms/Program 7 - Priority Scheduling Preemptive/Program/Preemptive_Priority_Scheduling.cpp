@@ -281,7 +281,7 @@ int main()
 
 /*
 
-Process Queue	Arrival time	Burst time Priority
+Process Queue	Arrival time	Burst time      Priority
 
 
 3
