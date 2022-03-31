@@ -76,7 +76,7 @@ void Next_Fit(vector<memoryBlocks> &memBlocks, int noOfBlocks, vector<pair<int, 
     {
         bool isProcessMemAllocated = false;
         int bindx = memIter;
-        bindx++;
+        bindx = (bindx + 1) % noOfBlocks;
         for (bindx; bindx != memIter; bindx = (bindx + 1) % noOfBlocks)
         {
             if (memBlocks[bindx].isAllocated == true || memBlocks[bindx].blockSize < processSizes[pindx].first)
@@ -115,7 +115,7 @@ void Next_Fit(vector<memoryBlocks> &memBlocks, int noOfBlocks, vector<pair<int, 
 
 int main()
 {
-    system("cls");
+    // system("cls");
 
     printLines();
     cout << "Vicky Gupta 20BCS070\n";
