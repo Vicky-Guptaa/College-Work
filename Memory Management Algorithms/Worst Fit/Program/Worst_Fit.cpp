@@ -24,8 +24,7 @@ void printLines()
 
 void Display(vector<memoryBlocks> &memBlocks, int noOfBlocks, int internalFrag, int externalFrag, vector<pair<int, string>> &leftProcess)
 {
-    cout << "Memory Allocation Table Of Next Fit Allgorithm\n"
-         << "\n";
+    cout << "Worst Fit Memory Allocation Table \n";
     cout << "---------------------------------------------------------------------------------\n";
     cout << "| Block No\t"
          << "Size Of Block\t"
@@ -68,33 +67,35 @@ void Display(vector<memoryBlocks> &memBlocks, int noOfBlocks, int internalFrag, 
     printLines();
 }
 
-void Next_Fit(vector<memoryBlocks> &memBlocks, int noOfBlocks, vector<pair<int, string>> &processSizes, int noOfProcess)
+void Worst_Fit(vector<memoryBlocks> &memBlocks, int noOfBlocks, vector<pair<int, string>> &processSizes, int noOfProcess)
 {
     vector<pair<int, string>> leftProcess;
-    int memIter = -1;
     for (int pindx = 0; pindx < noOfProcess; pindx++)
     {
         bool isProcessMemAllocated = false;
-        int bindx = memIter;
-        // bindx = (bindx + 1) % noOfBlocks;
-        bindx++;
-        for (bindx; bindx != memIter; bindx = (bindx + 1) % noOfBlocks)
+        int emptyBlock = 0, largestBlockSize = 0;
+        for (int bindx = 0; bindx < noOfBlocks; bindx++)
         {
             if (memBlocks[bindx].isAllocated == true || memBlocks[bindx].blockSize < processSizes[pindx].first)
                 continue;
 
             isProcessMemAllocated = true;
-
-            memBlocks[bindx].isAllocated = true;
-            memBlocks[bindx].processName = processSizes[pindx].second;
-            memBlocks[bindx].processSize = processSizes[pindx].first;
-            memBlocks[bindx].internalFrag = memBlocks[bindx].blockSize - processSizes[pindx].first;
-            break;
+            if (largestBlockSize < memBlocks[bindx].blockSize)
+            {
+                emptyBlock = bindx;
+                largestBlockSize = memBlocks[bindx].blockSize;
+            }
         }
-        memIter = bindx;
         if (isProcessMemAllocated == false)
         {
             leftProcess.push_back(processSizes[pindx]);
+        }
+        else
+        {
+            memBlocks[emptyBlock].isAllocated = true;
+            memBlocks[emptyBlock].processName = processSizes[pindx].second;
+            memBlocks[emptyBlock].processSize = processSizes[pindx].first;
+            memBlocks[emptyBlock].internalFrag = memBlocks[emptyBlock].blockSize - processSizes[pindx].first;
         }
     }
     int externalFrag = 0, internalFrag = 0;
@@ -106,6 +107,20 @@ void Next_Fit(vector<memoryBlocks> &memBlocks, int noOfBlocks, vector<pair<int, 
                 continue;
             externalFrag += memBlocks[bindx].blockSize;
         }
+        int leftProcessSize = 0;
+        bool isExternFrag = 0;
+        for (int iter = 0; iter < leftProcess.size(); iter++)
+        {
+            if (leftProcess[iter].first < externalFrag)
+            {
+                isExternFrag = 1;
+                break;
+            }
+        }
+        if (isExternFrag == 0)
+        {
+            externalFrag = 0;
+        }
     }
     for (int bindx = 0; bindx < noOfBlocks; bindx++)
     {
@@ -116,11 +131,11 @@ void Next_Fit(vector<memoryBlocks> &memBlocks, int noOfBlocks, vector<pair<int, 
 
 int main()
 {
-    // system("cls");
+    system("cls");
 
     printLines();
     cout << "Vicky Gupta 20BCS070\n";
-    cout << "Next Fit Memory Allocation Algorithm\n";
+    cout << "Worst Fit Memory Allocation Algorithm\n";
     printLines();
     printLines();
 
@@ -155,11 +170,24 @@ int main()
         processSizes[i].second += to_string(i + 1);
     }
     printLines();
-
+    cout << "Memory Blocks...\n";
+    cout << "| ";
+    for (int i = 0; i < noOfBlocks; i++)
+    {
+        cout << memBlocks[i].blockSize << " | ";
+    }
+    cout << "\n";
+    printLines();
+    cout << "Process Blocks...\n";
+    cout << "| ";
+    for (int i = 0; i < noOfProcess; i++)
+    {
+        cout << processSizes[i].first << " [" << processSizes[i].second << "]  | ";
+    }
     cout << "\n\n";
     printLines();
     printLines();
-    Next_Fit(memBlocks, noOfBlocks, processSizes, noOfProcess);
+    Worst_Fit(memBlocks, noOfBlocks, processSizes, noOfProcess);
     return 0;
 }
 
@@ -167,7 +195,7 @@ int main()
 No Of Blocks -> 5
 No Of Process -> 4
 
-Blocks Sizes -> 100 500 200 450 600
+Blocks Sizes -> 100 500 200 300 600
 Process Sizes -> 212 417 112 426
 
 Block No   Size Of Block   Process Allocated   Internal Fragmentation
@@ -191,11 +219,6 @@ Now Internal Frag 330
 
 5
 4
-100 500 200 450 600
-426 417 112 200
-
-5
-4
-50 150 300 350 600
-300 25 125 50
+100 500 200 300 600
+212 417 112 426
 */
